@@ -78,6 +78,14 @@ echo syslogtest
 
 bc0cc308c56957b58628d65b482f082f6c6b4a2d6f52e115f19addc31f2fd336
 docker: Error response from daemon: failed to initialize logging driver: Unix syslog delivery error.
+
+# provides UDP syslog reception
+#$ModLoad imudp
+#$UDPServerRun 514
+
+# provides TCP syslog reception
+#$ModLoad imtcp
+#$InputTCPServerRun 514
 ```
 
 rsyslog를 통해 원격 서버로 로그 보내기
@@ -192,4 +200,81 @@ fluentd는 각종 로그를 수집하고 저장할 수 있는 기능을 가진 �
    
 
 
+
+## 2.2.9 컨테이너 자원 할당 제한
+
+
+
+컨테이너를 생성하는 run, create 명령어에서 컨테이너의 자원 할당량을 조정할 수 있다. 아무 제한이 없다면 컨테이너는 호스트의 자원을 제한 없이 쓸 수 있다. 
+
+1. 컨테이너 메모리 제한
+   제한된 메모리를 초과하면 컨테이너는 자동적으로 종료.
+
+   ```bash
+   docker run -d \
+   --memory="1g" \
+   --memory-swap="3g" \
+   --name memory_1g \
+   nginx
+   
+   docker inpect memory_1g
+        "Memory": 1073741824,
+   			...
+        "MemorySwap": 3221225472,
+   ```
+
+2. 컨테이너 CPU 제한
+
+   ```bash
+   docker run -d --name cpu_share \
+   --cpu-shares 1024 \		# 기본값이 1024. 컨테이너가 여러개인 경우 상대적인 값으로 조절 가능
+   --cpuset-cpus=1 \
+   alicek106/stress \
+   stress --cpu 1
+   
+   docker run -d --name cpu_share2 \
+   --cpu-shares 512 \
+   --cpuset-cpus=1 \
+   alicek106/stress \
+   stress --cpu 1
+   
+   docker run -d --name quota_1_4 \
+   --cpu-period=100000 \			#default = 100,000 = 100 ms
+   --cpu-quota=25000 \				# quota / period 만큼 시간 할당받음
+   ...
+   
+   docker run -d --name cpus \
+   --cpus=0.5 \			#더 직관적인 방법
+   ...
+   # docker stats 로 확인
+   
+   ```
+
+3. Block I/O 제한
+
+   ```bash
+   ➜  docker docker run -it \
+   --device-write-bps /dev/vda:1mb \
+   ubuntu:14.04
+   root@96dd75512dbe:/# dd if=/dev/zero of=test.out bs=1M count=10 oflag=direct
+   10+0 records in
+   10+0 records out
+   10485760 bytes (10 MB) copied, 10.0045 s, 1.0 MB/s
+   root@96dd75512dbe:/# exit
+   exit
+   
+   ➜  docker docker run -it \
+   --device-write-bps /dev/vda:5mb \
+   ubuntu:14.04
+   root@9f1946e6edd6:/# dd if=/dev/zero of=test.out bs=1M count=10 oflag=direct
+   10+0 records in
+   10+0 records out
+   10485760 bytes (10 MB) copied, 2.0097 s, 5.2 MB/s
+   
+   # --device-read-bps 도 마찬가지
+   # --device-read-iops / --device-write-iops 는 상대적인 값 입력 ( 1 = 1mb )
+   
+   ```
+
+   
 
