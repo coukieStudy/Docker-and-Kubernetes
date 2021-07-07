@@ -1,0 +1,88 @@
+version: "3.0"
+services: 
+  swarm-manager:
+    image: docker:dind
+    container_name: swarm-manager
+    privileged: true
+    environment: 
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - swarm-certs-ca:/certs/ca
+      - swarm-certs-client:/certs/client
+    networks:
+      - swarm-network
+    ports:
+      - "2377:2377"
+      - "3200:80"
+    expose:
+      - "7946/tcp"
+      - "7946/udp"
+      - "4789/tcp"
+      - "4789/udp"
+
+  swarm-worker1:
+    image: docker:dind
+    container_name: swarm-worker1
+    privileged: true
+    environment: 
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - swarm-certs-ca:/certs/ca
+      - swarm-certs-client:/certs/client
+    networks:
+      - swarm-network
+    ports:
+      - "3201:80"
+    expose:
+      - "7946/tcp"
+      - "7946/udp"
+      - "4789/tcp"
+      - "4789/udp"
+
+  swarm-worker2:
+    image: docker:dind
+    container_name: swarm-worker2
+    privileged: true
+    environment: 
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - swarm-certs-ca:/certs/ca
+      - swarm-certs-client:/certs/client
+    networks:
+      - swarm-network
+    ports:
+      - "3202:80"
+    expose:
+      - "7946/tcp"
+      - "7946/udp"
+      - "4789/tcp"
+      - "4789/udp"
+
+  swarm-worker3:
+    image: docker:dind
+    container_name: swarm-worker3
+    privileged: true
+    environment: 
+      DOCKER_TLS_CERTDIR: /certs
+    volumes:
+      - swarm-certs-ca:/certs/ca
+      - swarm-certs-client:/certs/client
+    networks:
+      - swarm-network
+    ports:
+      - "3203:80"
+    expose:
+      - "7946/tcp"
+      - "7946/udp"
+      - "4789/tcp"
+      - "4789/udp"
+
+volumes: 
+  swarm-certs-ca:
+    driver: local
+  swarm-certs-client:
+    driver: local
+
+networks:
+  swarm-network:
+    driver: bridge
