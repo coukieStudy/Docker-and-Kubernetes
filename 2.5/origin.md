@@ -202,7 +202,7 @@ public class Main {
 
 출력 결과는 curl로 HTTP 요청을 보냈던 것과 같이 JSON 형태로 결과를 반환
 
-```json
+```
 Info{architecture=x86_64, clusterStore=etcd://192.168.99.100:12379, cgroupDriver=cgroufs, ...}
 ```
 
