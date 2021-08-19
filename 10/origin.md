@@ -95,9 +95,9 @@ roleRef: # Specified Role
 - secret print
 ```bash
 $ kubectl get secrets
-NAME            TYPE                                DATA    AGE
-default         kubernetes.io/service-account-token 3       1d
-sa-example      kubernetes.io/service-account-token 3       4h
+NAME                        TYPE                                DATA    AGE
+default-token-vssmw         kubernetes.io/service-account-token 3       1d
+sa-example-token-xdlvn      kubernetes.io/service-account-token 3       4h
 ```
 - serviceAccount secret은 ca.crt, namespace, token 총 3개의 데이터가 저장되어 있다. 
 - ca.crt: 공개 인증서
@@ -153,7 +153,7 @@ print("Listing pods with their IPs:")
 ret = v1.list_namespaced_pod(namespace='default')) 
 # success
 
-print("Listing pods with their IPs:")
+print("Listing services with their IPs:")
 ret = v1.list_namespaced_service(namespace='default')) 
 # forbidden: sa-example은 pod list하는 권한만 있음.
 
