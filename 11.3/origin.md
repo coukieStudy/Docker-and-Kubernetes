@@ -2,7 +2,7 @@
 
 
 
-#### 11.3.1 디플로이먼트를 통한 롤링 업데이트
+### 11.3.1 디플로이먼트를 통한 롤링 업데이트
 
 테스트 또는 개발환경이 아닌 이상 pod 를 직접 생성하거나 종료할 일은 거의 없다. 디플로이먼트를 통해 replica set 을 관리하고, 이 때 --record 옵션을 통해 변경사항을 기록할 수 있다. 
 
@@ -50,7 +50,7 @@ spec:
 
 
 
-#### 11.3.2 포드의 생애 주기
+### 11.3.2 포드의 생애 주기
 
 포드의 상태
 
@@ -100,7 +100,7 @@ spec:
        command: ['sh', '-c', 'until nslookup myservice; do echo waiting..; sleep 1; done;']
    ```
 
-2.  postStart
+2. postStart
 
    포드의 컨테이너가 실행되거나 삭제될 때, 특정 작업이 수행되도록 라이프사이클 훅을 지정할 수 있다. 시작될 때 실행되는 작업을 postStart 라고 하며, 컨테이너가 시작한 직후 특정 주소로 HTTP 요청을 보내는 방식과, 컨테이너 내부에서 특정 명령어를 실행하는 두 가지 방식이 있다.
 
@@ -175,7 +175,46 @@ spec:
        my-readinessprobe: test
      type: ClusterIP
      
-     
+   
+   
+   ➜ kubectl get endpoints
+   NAME                 ENDPOINTS           AGE
+   kubernetes           192.168.65.3:6443   41d
+   readinessprobe-svc   10.1.1.118:80       55s
+   
+   ➜ kubectl exec readinessprobe-pod -- rm /usr/share/nginx/html/index.html
+   ➜ kubectl get endpoints
+   NAME                 ENDPOINTS           AGE
+   kubernetes           192.168.65.3:6443   41d
+   readinessprobe-svc                       2m27s  
    ```
 
-   
+   세부 옵션:
+
+   periodSeconds: 상태 검사를 진행할 주기. default 10초
+
+   initialDelaySeconds: 포드가 생성된 뒤 상태 검사를 시작할 때 까지의 대기 시간. default 0
+
+   timeoutSeconds: 요청에 대한 타임아웃 시간을 설정. default 1초
+
+   successThreshold: 상태 검사에 성공했다고 간주할 검사 성공 횟수. default 1
+
+   failureThreshold: 상태 검사가 실패했다고 간주할 검사 실패 횟수. default 3
+
+
+
+### Terminating 상태와 어플리케이션 종료
+
+kubectl delete와 같은 명령어로 포드를 삭제하면 다음 일들이 일어난다.
+
+1. 포드가 Terminating 상태로 전환된다.
+2. 다음 세 가지 작업이 동시에 수행된다. 
+   * preStop Hook이 존재한다면 실행
+   * 포드가 레플리카셋으로부터 실행되었다면, 관리 영역에서 벗어나며, 레플리카셋은 새로운 파드를 생성하려고 시도
+   * 포드가 서비스의 라우팅 대상에서 제외
+3.  preStop이 완료되면 컨테이너의 init 프로세스에 SIGTERM이 전달된다.
+4. 특정 시간(terminationGracePeriodSeconds) 이 지나도 여전히 컨테이너 내부의 프로세스가 종료되지 않으면 프로세스로 SIGKILL 시그널이 전달된다.
+
+
+
+개발자가 별도의 장치를 마련하는 방법은 preStop hook을 설정할 수 있고, 어플리케이션 내부의 소스코드로 SIGTERM 시그널을 수신했을 때의 행동을 구현할 수 있다.
